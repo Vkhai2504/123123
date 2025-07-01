@@ -27,14 +27,27 @@ const AuthForm = ({ onLogin }) => {
         ? { username: formData.username, password: formData.password }
         : formData;
 
-      const response = await axios.post(`${API}${endpoint}`, payload);
+      console.log('Attempting authentication:', endpoint, payload);
+      const response = await axios.post(`${API}${endpoint}`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000
+      });
       
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('Authentication response:', response.data);
       
-      onLogin(response.data.user);
+      if (response.data.access_token && response.data.user) {
+        localStorage.setItem('token', response.data.access_token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        onLogin(response.data.user);
+      } else {
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Authentication failed');
+      console.error('Authentication error:', err);
+      const errorMessage = err.response?.data?.detail || err.message || 'Authentication failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
