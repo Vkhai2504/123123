@@ -158,19 +158,28 @@ const Dashboard = ({ user, onLogout }) => {
   const purchaseItem = async (itemId) => {
     setLoading(true);
     try {
+      console.log('Attempting to purchase item:', itemId);
       const response = await axios.post(
         `${API}/purchase`, 
         { item_id: itemId },
-        { headers: getAuthHeaders() }
+        { 
+          headers: getAuthHeaders(),
+          timeout: 10000
+        }
       );
       
+      console.log('Purchase response:', response.data);
       setUserCoins(response.data.coins_remaining);
       const item = items.find(i => i.id === itemId);
-      setInventory([...inventory, item.item_name]);
+      if (item) {
+        setInventory([...inventory, item.item_name]);
+      }
       setMessage(response.data.message);
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
-      setMessage(err.response?.data?.detail || 'Purchase failed');
+      console.error('Purchase error:', err);
+      const errorMessage = err.response?.data?.detail || err.message || 'Purchase failed';
+      setMessage(errorMessage);
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
