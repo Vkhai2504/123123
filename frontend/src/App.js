@@ -148,10 +148,16 @@ const Dashboard = ({ user, onLogout }) => {
 
   const loadItems = async () => {
     try {
-      const response = await axios.get(`${API}/items`);
+      console.log('Loading items from API...');
+      const response = await axios.get(`${API}/items`, {
+        timeout: 10000
+      });
+      console.log('Items loaded:', response.data.length);
       setItems(response.data);
     } catch (err) {
       console.error('Failed to load items:', err);
+      setMessage('Failed to load items from server');
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
